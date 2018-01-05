@@ -1,14 +1,14 @@
 {
     "name": "flexible_feet",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "title": "Flexible Feet",
     "author": "Aidiakapi",
     "contact": "aidiakapi@gmail.com",
     "homepage": "",
     "description": "Makes movement speed configurable, and by default more consistent across different surfaces.",
-    "factorio_version": "0.15",
+    "factorio_version": "0.16",
     "dependencies": [
-        "base >= 0.15.30",
+        "base >= 0.16.0",
         "?alien-biomes",
         "?AsphaltRoads >= 1.0",
         "?Dectorio >= 0.7",

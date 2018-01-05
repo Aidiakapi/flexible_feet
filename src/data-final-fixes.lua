@@ -55,7 +55,7 @@ do
         if range_upper - range_lower <= EPS then
             expression_fn = 'return function (x) return (' .. expression .. ') end'
         else
-            expression_fn = ('return function (x) if x <= %s or x >= %s then return x end return (%s) end'):format(range_lower, range_upper, expression)
+            expression_fn = ('return function (x) if x < %s or x >= %s then return x end return (%s) end'):format(range_lower, range_upper, expression)
         end
         
         local fn_factory, err_msg = load(expression_fn, expression, 't', expression_env)
@@ -86,41 +86,19 @@ do
     map_function = load_map_function(expression)
 end
 
+local function map_value_post(value)
+    if should_round then
+        value = math.floor(value * 10 + 0.5) / 10
+    end
+    if math.abs(value - 1) < EPS then return nil end
+    return value
+end
+
 for _, tile in pairs(data.raw.tile) do
     if not tile.name or not exclusions[tile.name] then
-        do
-            local old_modifier
-            if tile.vehicle_friction_modifier then
-                old_modifier = 1 / tile.vehicle_friction_modifier
-            else
-                old_modifier = 1
-            end
-
-            local new_modifier = 1 / map_function(old_modifier)
-            if math.abs(new_modifier - 1) < EPS then
-                tile.vehicle_friction_modifier = nil
-            elseif math.abs(new_modifier - old_modifier) > EPS then
-                tile.vehicle_friction_modifier = new_modifier
-            end
-        end
-
-        do
-            local old_modifier
-            if tile.walking_speed_modifier then
-                old_modifier = tile.walking_speed_modifier
-            else
-                old_modifier = 1
-            end
-
-            local new_modifier = map_function(old_modifier)
-            if should_round then
-                new_modifier = math.floor(new_modifier * 10 + 0.5) / 10
-            end
-            if math.abs(new_modifier - 1) < EPS then
-                tile.walking_speed_modifier = nil
-            elseif math.abs(new_modifier - old_modifier) > EPS then
-                tile.walking_speed_modifier = new_modifier
-            end
-        end
+        log(([[%q from %s %s]]):format(tile.name, tile.vehicle_friction_modifier, tile.walking_speed_modifier))
+        tile.vehicle_friction_modifier = map_value_post(1 / map_function(1 / (tile.vehicle_friction_modifier or 1)))
+        tile.walking_speed_modifier = map_value_post(map_function(tile.walking_speed_modifier or 1))
+        log(([[%q to   %s %s]]):format(tile.name, tile.vehicle_friction_modifier, tile.walking_speed_modifier))
     end
 end
